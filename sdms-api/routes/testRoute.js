@@ -1,0 +1,13 @@
+// routes/testRoute.js
+const express = require('express');
+const router = express.Router();
+
+// Simple GET API
+router.get('/test', (req, res) => {
+  res.json({
+    success: true,
+    message: "Test API is working!"
+  });
+});
+
+module.exports = router;

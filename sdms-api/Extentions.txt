@@ -1,0 +1,12 @@
+github copilot
+
+ESLint
+Prettier
+Node.js
+PostgreSQL
+Git
+
+For debugging test by jest 
+=============================
+
+jest runner
