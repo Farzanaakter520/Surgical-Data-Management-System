@@ -15,7 +15,6 @@ The **Surgical Data Management System** is a web-based platform designed to digi
 - Backend: Node.js, Express.js
 - Frontend: Next.js
 - Database: PostgreSQL 
-- Tools: Git, GitHub
 
 ## Purpose
 The project aims to replace manual surgical record-keeping with a reliable, fast, and secure digital solution.
