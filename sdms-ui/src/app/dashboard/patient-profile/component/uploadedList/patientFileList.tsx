@@ -25,6 +25,14 @@ export default function PatientFilesList({ postOps = [] }: Props) {
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [previewType, setPreviewType] = useState<"pdf" | "video" | "image" | null>(null);
 
+  const formatDateTime = (dt?: string | Date) => {
+    if (!dt) return "N/A";
+    const d = new Date(dt);
+    return Number.isNaN(d.getTime())
+      ? "N/A"
+      : d.toISOString().replace("T", " ").slice(0, 19);
+  };
+
   // ✅ Ensure props update triggers re-render
   useEffect(() => {
     setRecords(postOps);
@@ -115,7 +123,7 @@ export default function PatientFilesList({ postOps = [] }: Props) {
                 </button>
               </td>
               <td className="p-2 border">
-                {item.dt ? new Date(item.dt).toLocaleString() : "N/A"}
+                {formatDateTime(item.dt)}
               </td>
             </tr>
           ))}

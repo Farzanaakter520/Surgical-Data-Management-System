@@ -1,12 +1,14 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { API_BASES } from "@/lib/config/app-config";
 
 async function getSessionFromBackend(sessionId: string) {
   const baseUrl =
-    process.env.NEXT_PUBLIC_SDMS_API_BASE || "http://localhost:5000/api/v1";
+    API_BASES.sdms || process.env.NEXT_PUBLIC_SDMS_API_BASE || "http://localhost:8000/api/v1";
+  const normalizedBase = baseUrl.replace(/\/+$/, "");
 
-  const res = await fetch(`${baseUrl}/sessionstorage/getsession`, {
+  const res = await fetch(`${normalizedBase}/sessionstorage/getsession`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ session_id: sessionId }),

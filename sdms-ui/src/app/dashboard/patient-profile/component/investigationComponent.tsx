@@ -32,7 +32,7 @@ export default function InvestigationComponent({ profile }: Props) {
           No investigation records available.
         </p>
       ) : (
-        preOps.flatMap((rec) =>
+        preOps.flatMap((rec, recIndex) =>
           rec.investigations && Object.keys(rec.investigations).length > 0 ? (
             <div
               key={rec.id}
@@ -59,7 +59,7 @@ export default function InvestigationComponent({ profile }: Props) {
             </div>
           ) : (
             <div
-              key={rec.id ?? Math.random()}
+              key={rec.id ?? `no-investigation-${recIndex}`}
               className="text-center text-gray-500 p-4 bg-white rounded-xl border border-blue-100 shadow-sm italic"
             >
               No investigations found for this record.

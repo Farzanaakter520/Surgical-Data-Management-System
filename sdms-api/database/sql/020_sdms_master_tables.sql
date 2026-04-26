@@ -1,0 +1,127 @@
+-- SDMS master/reference tables
+
+CREATE TABLE IF NOT EXISTS sdms_db.option_groups (
+  id BIGSERIAL PRIMARY KEY,
+  group_key VARCHAR(120) NOT NULL UNIQUE,
+  group_name VARCHAR(200) NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS sdms_db.option_items (
+  id BIGSERIAL PRIMARY KEY,
+  option_group_id BIGINT NOT NULL REFERENCES sdms_db.option_groups(id) ON DELETE CASCADE,
+  item_key VARCHAR(120),
+  item_value VARCHAR(120) NOT NULL,
+  item_label VARCHAR(255) NOT NULL,
+  sort_order INT NOT NULL DEFAULT 0,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (option_group_id, item_value)
+);
+
+CREATE TABLE IF NOT EXISTS sdms_db.referrals (
+  id BIGSERIAL PRIMARY KEY,
+  name VARCHAR(200) NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS sdms_db.occupations (
+  id BIGSERIAL PRIMARY KEY,
+  name VARCHAR(200) NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS sdms_db.designations (
+  id BIGSERIAL PRIMARY KEY,
+  name VARCHAR(200) NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS sdms_db.specialties (
+  id BIGSERIAL PRIMARY KEY,
+  name VARCHAR(200) NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS sdms_db.hospitals (
+  id BIGSERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255),
+  address_line_1 TEXT NOT NULL,
+  address_line_2 TEXT,
+  contact_number VARCHAR(32) NOT NULL,
+  alternative_contact_number VARCHAR(32),
+  website VARCHAR(255),
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (name, contact_number)
+);
+
+CREATE TABLE IF NOT EXISTS sdms_db.doctors (
+  id BIGSERIAL PRIMARY KEY,
+  name VARCHAR(200) NOT NULL,
+  email VARCHAR(255),
+  address_line_1 TEXT,
+  contact_number VARCHAR(32),
+  designation_id BIGINT REFERENCES sdms_db.designations(id),
+  specialty_id BIGINT REFERENCES sdms_db.specialties(id),
+  hospital_id BIGINT REFERENCES sdms_db.hospitals(id),
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS sdms_db.clinical_diagnoses (
+  id BIGSERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS sdms_db.co_morbidities (
+  id BIGSERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS sdms_db.investigations (
+  id BIGSERIAL PRIMARY KEY,
+  investigation_name VARCHAR(255) NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS sdms_db.operations (
+  id BIGSERIAL PRIMARY KEY,
+  operation_name VARCHAR(255) NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS sdms_db.drug_types (
+  id BIGSERIAL PRIMARY KEY,
+  name VARCHAR(200) NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS sdms_db.drugs (
+  id BIGSERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL UNIQUE,
+  drug_type_id BIGINT REFERENCES sdms_db.drug_types(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS sdms_db.follow_up_types (
+  id BIGSERIAL PRIMARY KEY,
+  name VARCHAR(200) NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);

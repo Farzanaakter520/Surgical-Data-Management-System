@@ -38,22 +38,23 @@ app.use((req, res, next) => {
   next();
 });
 
-// Global Error handling middleware
-app.use((err, req, res, next) => {
-  logger.error(`Unhandled error: ${err.message}`, { stack: err.stack });
-  // Send a JSON response with the error details
-  res.status(statusCode).json({
-    status: 'error',
-    message: err.message || 'Something went wrong!',
-    // Optionally include the stack trace in development environments for debugging
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
-  });
-});
 // Trust the first proxy (or adjust the number for multiple proxies)
 app.set('trust proxy', true);
 
 // Routes
 rootRoute(app);
+
+// Global Error handling middleware (must be after routes)
+app.use((err, req, res, next) => {
+  logger.error(`Unhandled error: ${err.message}`, { stack: err.stack });
+  const statusCode = err.statusCode || 500;
+
+  res.status(statusCode).json({
+    status: 'error',
+    message: err.message || 'Something went wrong!',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+  });
+});
 
 
 

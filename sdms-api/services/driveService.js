@@ -1,13 +1,21 @@
 const { drive } = require("../utils/googleAuth");
 const fs = require("fs");
 
+const ensureDrive = () => {
+  if (!drive) {
+    throw new Error("Google Drive is not configured. Add token.json or enable GOOGLE_AUTH_INTERACTIVE to initialize it.");
+  }
+  return drive;
+};
+
 // Create folder if not exists
 async function getOrCreateFolder(folderName, parentId = "root") {
+  const driveClient = ensureDrive();
   const query = `'${parentId}' in parents and mimeType='application/vnd.google-apps.folder' and name='${folderName}' and trashed=false`;
-  const res = await drive.files.list({ q: query, fields: "files(id, name)" });
+  const res = await driveClient.files.list({ q: query, fields: "files(id, name)" });
   if (res.data.files.length > 0) return res.data.files[0].id;
 
-  const folder = await drive.files.create({
+  const folder = await driveClient.files.create({
     requestBody: { name: folderName, mimeType: "application/vnd.google-apps.folder", parents: [parentId] },
     fields: "id",
   });
@@ -16,12 +24,13 @@ async function getOrCreateFolder(folderName, parentId = "root") {
 
 // Upload file to personal drive
 async function uploadToDrive(localPath, fileName, mimeType, folderName = null) {
+  const driveClient = ensureDrive();
   let folderId = folderName ? await getOrCreateFolder(folderName) : null;
 
   const fileMetadata = { name: fileName, parents: folderId ? [folderId] : undefined };
   const media = { mimeType, body: fs.createReadStream(localPath) };
 
-  const { data } = await drive.files.create({ requestBody: fileMetadata, media, fields: "id, name, webViewLink" });
+  const { data } = await driveClient.files.create({ requestBody: fileMetadata, media, fields: "id, name, webViewLink" });
 
   try { fs.unlinkSync(localPath); } catch { }
 
@@ -30,7 +39,8 @@ async function uploadToDrive(localPath, fileName, mimeType, folderName = null) {
 
 // Download file
 async function downloadFromDrive(fileId, res) {
-  const response = await drive.files.get({ fileId, alt: "media" }, { responseType: "stream" });
+  const driveClient = ensureDrive();
+  const response = await driveClient.files.get({ fileId, alt: "media" }, { responseType: "stream" });
   return response.data.pipe(res);
 }
 

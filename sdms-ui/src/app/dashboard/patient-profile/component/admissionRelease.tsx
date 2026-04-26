@@ -16,10 +16,16 @@ export default function AdmissionRelease({ admissionData, releaseData }: Props) 
     if (releaseData && releaseData.length > 0) setReleases(releaseData);
   }, [admissionData, releaseData]);
 
-  const fmtDate = (iso?: string) =>
-    iso ? new Date(iso).toLocaleDateString() : "N/A";
-  const fmtDateTime = (iso?: string) =>
-    iso ? new Date(iso).toLocaleString() : "N/A";
+  const fmtDate = (iso?: string) => {
+    if (!iso) return "N/A";
+    const d = new Date(iso);
+    return Number.isNaN(d.getTime()) ? "N/A" : d.toISOString().slice(0, 10);
+  };
+  const fmtDateTime = (iso?: string) => {
+    if (!iso) return "N/A";
+    const d = new Date(iso);
+    return Number.isNaN(d.getTime()) ? "N/A" : d.toISOString().replace("T", " ").slice(0, 19);
+  };
 
   return (
     <div className="space-y-12">

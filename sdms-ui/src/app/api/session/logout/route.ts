@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { API_BASES } from "@/lib/config/app-config";
 
 // Helper to call Express backend to delete session
 async function deleteSessionInBackend(sessionId: string) {
   const baseUrl =
-    process.env.NEXT_PUBLIC_SDMS_API_BASE || "http://localhost:5000/api/v1";
+    API_BASES.sdms || process.env.NEXT_PUBLIC_SDMS_API_BASE || "http://localhost:8000/api/v1";
+  const normalizedBase = baseUrl.replace(/\/+$/, "");
 
-  const res = await fetch(`${baseUrl}/sessionstorage/deletesession`, {
+  const res = await fetch(`${normalizedBase}/sessionstorage/deletesession`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ session_id: sessionId }),

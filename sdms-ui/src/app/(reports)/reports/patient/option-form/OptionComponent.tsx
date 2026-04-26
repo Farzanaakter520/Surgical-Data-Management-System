@@ -52,7 +52,6 @@ export default function OptionComponent({ onShow }: OptionComponentProps) {
 
         <DateRangePickerForReport
           label="Report Period"
-          value={{ from: new Date().toISOString(), to: new Date().toISOString() }}
           config={{ allowQuickSelect: true }}
           onChange={setDateRange}
         />

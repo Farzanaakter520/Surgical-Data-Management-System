@@ -1,6 +1,7 @@
 "use server";
 
 import { AuthAction } from "@/lib/actions/authActions";
+import { API_BASES } from "@/lib/config/app-config";
 import { cookies } from "next/headers";
 import { randomUUID } from "crypto";
 
@@ -11,29 +12,41 @@ async function createSessionInBackend(
   data: any,
   expireMs: number
 ) {
-  // ✅ Correct: compute expiration timestamp using Date.now()
-  const expiresAt = Date.now() + expireMs;
+  // Store as ISO timestamp so PostgreSQL timestamptz accepts it directly.
+  const expiresAt = new Date(Date.now() + expireMs).toISOString();
 
   // ✅ Use fallback base URL safely
   const baseUrl =
-    process.env.NEXT_PUBLIC_SDMS_API_BASE || "http://localhost:5000/api/v1";
+    API_BASES.sdms || process.env.NEXT_PUBLIC_SDMS_API_BASE || "http://localhost:8000/api/v1";
 
-  const res = await fetch(`${baseUrl}/sessionstorage/createsession`, {
+  const normalizedBase = baseUrl.replace(/\/+$/, "");
+
+  const res = await fetch(`${normalizedBase}/sessionstorage/createsession`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       session_id: sessionId,
       token: token,
       data: data,
-      expires_at: expiresAt, // ✅ fixed timestamp logic
+      expires_at: expiresAt,
       device_id: "device-001",
       insert_by: "system",
     }),
   });
 
   if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error || "Failed to create session in backend");
+    const raw = await res.text();
+    let parsedMsg = "";
+    try {
+      const parsed = JSON.parse(raw);
+      parsedMsg = parsed?.msg || parsed?.message || parsed?.error || "";
+    } catch {
+      parsedMsg = raw;
+    }
+
+    throw new Error(
+      parsedMsg || `Failed to create session in backend (${res.status})`
+    );
   }
 
   return res.json();

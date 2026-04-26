@@ -12,8 +12,11 @@ interface Props {
   profile: ProfileData;
 }
 
-const fmtDate = (iso?: string) =>
-  iso ? new Date(iso).toLocaleDateString() : "N/A";
+const fmtDate = (iso?: string) => {
+  if (!iso) return "N/A";
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? "N/A" : d.toISOString().slice(0, 10);
+};
 
 export default function SurgicalComponent({ profile }: Props) {
   const surgicals = profile?.surgical_data ?? [];

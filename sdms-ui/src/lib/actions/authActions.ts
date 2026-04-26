@@ -10,19 +10,34 @@ export class AuthAction {
   constructor(private service: keyof typeof API_BASES) {}
 
   private buildUrl(endpoint: string): string {
-    return `${API_BASES[this.service]}${
-      endpoint.startsWith("/") ? endpoint : "/" + endpoint
-    }`;
+    const envBase = process.env.NEXT_PUBLIC_SDMS_API_BASE;
+    const safeEnvBase =
+      envBase && envBase !== "undefined" && envBase !== "null" ? envBase : "";
+    const base = API_BASES[this.service] || safeEnvBase || "http://localhost:8000/api/v1";
+
+    const normalizedBase = base.replace(/\/+$/, "");
+    const normalizedEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+
+    return `${normalizedBase}${normalizedEndpoint}`;
   }
 
   async login(email: string, password: string): Promise<LoginResponse> {
-    console.log(this.buildUrl(`/auth/login`));
-    const res = await fetch(this.buildUrl(`/auth/login`), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-      cache: "no-store",
-    });
+    const loginUrl = this.buildUrl(`/auth/login`);
+    console.log(loginUrl);
+
+    let res: Response;
+    try {
+      res = await fetch(loginUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+        cache: "no-store",
+      });
+    } catch (error: any) {
+      throw new Error(
+        `Login request failed for ${loginUrl}. ${error?.message || "Network error"}`
+      );
+    }
 
     if (!res.ok) {
       const errorText = await res.text();
