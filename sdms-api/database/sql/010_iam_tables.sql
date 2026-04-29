@@ -1,6 +1,6 @@
--- IAM tables (authController + userModel)
+-- sdms_db tables (authController + userModel)
 
-CREATE TABLE IF NOT EXISTS iam.t_users (
+CREATE TABLE IF NOT EXISTS sdms_db.t_users (
   id BIGSERIAL PRIMARY KEY,
   user_id VARCHAR(64) NOT NULL UNIQUE,
   first_name VARCHAR(120) NOT NULL,
@@ -14,9 +14,9 @@ CREATE TABLE IF NOT EXISTS iam.t_users (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS iam.t_refresh_tokens (
+CREATE TABLE IF NOT EXISTS sdms_db.t_refresh_tokens (
   id BIGSERIAL PRIMARY KEY,
-  user_id BIGINT NOT NULL REFERENCES iam.t_users(id) ON DELETE CASCADE,
+  user_id BIGINT NOT NULL REFERENCES sdms_db.t_users(id) ON DELETE CASCADE,
   token TEXT NOT NULL UNIQUE,
   expires_at TIMESTAMPTZ NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
