@@ -1,41 +1,33 @@
 "use client"
 
-import React, { Suspense, use } from "react";
+import React, { use } from 'react';
 import ModalPortal from "@/components/utility-components/portal-modal";
 import { useRouter } from "next/navigation";
 import GetPatientInfoWithId from "@/app/dashboard/patient-profile/getPatientInfoWithId";
 
-
-function LoadingFallback() {
-  return (
-    <div className="flex items-center justify-center p-10">
-      <div className="text-muted-foreground animate-pulse text-sm">
-        Loading photo...
-      </div>
-    </div>
-  );
-}
-
 interface PortalModalProps {
-  params: Promise<{ id: number;admission_id: number }>; 
+  params: Promise<{
+    id: string;
+    admission_id: string;
+  }>;
 }
 
 export default function PortalModalProps({ params }: PortalModalProps) {
   const { id, admission_id } = use(params);
+  const patientId = Number(id);
+  const admissionId = Number(admission_id);
   const router = useRouter();
   const handleClose = () => router.back();
 
+  if (!Number.isFinite(patientId) || !Number.isFinite(admissionId)) return null;
+
 
   return (
-    <ModalPortal title={`Photo ${id}`} isOpen={true} onClose={handleClose}>
-      <Suspense fallback={<LoadingFallback />}>
-        <div className="text-center">
-          <h2 className="text-xl font-bold mb-2"> ID: {id}</h2>
-          {id && (
-                    <GetPatientInfoWithId patient_id={id} admission_id={admission_id} />
-                  )}
-        </div>
-      </Suspense>
+    <ModalPortal title={`Photo ${patientId}`} isOpen={true} onClose={handleClose}>
+      <div className="text-center">
+        <h2 className="text-xl font-bold mb-2"> ID: {patientId}</h2>
+        <GetPatientInfoWithId patient_id={patientId} admission_id={admissionId} />
+      </div>
     </ModalPortal>
   );
 }

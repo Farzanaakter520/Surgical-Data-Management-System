@@ -19,7 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
      
-      <body>
+      <body suppressHydrationWarning>
         <Providers>
          <GlobalLoader position="top" color="default" size="sm" />
          {/* <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange> */}

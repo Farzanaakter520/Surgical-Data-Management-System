@@ -44,6 +44,42 @@ exports.getData = async (req, res) => {
       return ResponseHandler.success(res, result.rows);
     }
 
+    if (actionMode === "last_ten_released_patient") {
+      const result = await db.query(
+        `SELECT
+           p.id AS patient_id,
+           p.name AS patient_name,
+           p.mobile_number AS mobile_number,
+           p.age AS age,
+           o.operation_name AS surgery_name,
+           sd.operation_date_time AS surgery_date,
+           pd.discharge_date_time AS discharge_date,
+           h.name AS hospital_name,
+           pa.id AS admission_id
+         FROM sdms_db.patient_discharges pd
+         INNER JOIN sdms_db.patient_admissions pa
+           ON pa.id = pd.admission_id
+         INNER JOIN sdms_db.patients p
+           ON p.id = pd.patient_id
+         LEFT JOIN sdms_db.hospitals h
+           ON h.id = pd.hospital_id
+         LEFT JOIN LATERAL (
+           SELECT s.operation_date_time, s.operation_id
+           FROM sdms_db.surgical_data s
+           WHERE s.patient_id = p.id
+           ORDER BY s.operation_date_time DESC NULLS LAST, s.id DESC
+           LIMIT 1
+         ) sd ON TRUE
+         LEFT JOIN sdms_db.operations o
+           ON o.id = sd.operation_id
+         ORDER BY pd.discharge_date_time DESC NULLS LAST, pd.id DESC
+         LIMIT COALESCE(NULLIF($1::text, '')::int, 10)`,
+        [data.limit || null]
+      );
+
+      return ResponseHandler.success(res, result.rows);
+    }
+
     return ResponseHandler.error(
       res,
       `Unsupported dashboard action_mode: ${actionMode || "(empty)"}`

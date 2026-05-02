@@ -16,7 +16,6 @@ import { useRouter } from "next/navigation";
 import { fetchTableData } from "@/lib/actions/tableServerAction";
 import { PatientFollowup } from "@/app/dashboard/manage-patient/form-components/followup-patient/patient-followup";
 import DateRangePicker from "@/components/form-fields/StandaloneFromFields/DateRangePicker";
-import { start } from "repl";
 
 export const ColumnsConfig: TableColumn[] = [
   {
@@ -213,7 +212,7 @@ export const FollowupPatientList = () => {
 
   useEffect(() => {
     loadPatients();
-  }, []);
+  }, [startDate, endDate]);
 
   // ✅ Handle cell actions (button clicks)
   const handleCellAction = (payload: any) => {
@@ -257,10 +256,6 @@ export const FollowupPatientList = () => {
   const handleModalComplete = (data: any) => {
     loadPatients();
   };
-
-useEffect(()=>{
-    loadPatients();
-},[startDate,endDate])
 
   const handleDateChange = (from: string, to: string) => {
     setStartDate(from)

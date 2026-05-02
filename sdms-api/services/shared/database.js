@@ -1,4 +1,5 @@
-require('dotenv').config({ path: `${process.cwd()}/.env` });
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 const { Pool } = require('pg');
 
 class Database {

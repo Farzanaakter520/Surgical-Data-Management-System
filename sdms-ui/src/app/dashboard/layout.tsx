@@ -22,8 +22,10 @@ import { useAuth } from "@/contexts/auth-context";
 
 export default function DashboardLayout({
   children,
+  modal,
 }: {
   children: React.ReactNode;
+  modal: React.ReactNode;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -31,6 +33,7 @@ export default function DashboardLayout({
   const [userRole] = useState<string>("doctor");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   const SIDEBAR_WIDTH = 220; // slightly wider for readability
 
@@ -39,6 +42,10 @@ export default function DashboardLayout({
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    setIsMounted(true);
   }, []);
 
   const filteredMenuItems = menuConfig.filter(
@@ -57,6 +64,14 @@ export default function DashboardLayout({
     logout();
     router.push("/login");
   };
+
+  if (!isMounted) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-950">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen w-full overflow-x-hidden bg-gray-50 dark:bg-gray-950">
@@ -220,6 +235,8 @@ export default function DashboardLayout({
           </div>
         </main>
       </div>
+
+      {modal}
     </div>
   );
 }

@@ -10,6 +10,7 @@ import { cookies } from "next/headers";
 export interface ApiResponse<T = any> {
   success: boolean;
   message?: string;
+  msg?: string;
   data?: any | null;
   errors?: Record<string, string[]>;
 }
@@ -17,6 +18,14 @@ export interface ApiResponse<T = any> {
 interface RequestOptions {
   headers?: Record<string, string>;
 }
+
+type InFlightRequest<T> = {
+  startedAt: number;
+  promise: Promise<ApiResponse<T>>;
+};
+
+const IN_FLIGHT_REQUEST_TTL_MS = 1500;
+const inFlightRequests = new Map<string, InFlightRequest<any>>();
 
 const buildUrl = (
   service: keyof typeof API_BASES,
@@ -42,6 +51,24 @@ export async function apiFetch<T = any>(
   options: RequestOptions = {}
 ): Promise<ApiResponse<T>> {
   try {
+    const requestKey = JSON.stringify({
+      service,
+      endpoint,
+      payload,
+      headers: options.headers ?? null,
+    });
+
+    const existingRequest = inFlightRequests.get(requestKey) as
+      | InFlightRequest<T>
+      | undefined;
+
+    if (
+      existingRequest &&
+      Date.now() - existingRequest.startedAt <= IN_FLIGHT_REQUEST_TTL_MS
+    ) {
+      return existingRequest.promise;
+    }
+
     // const metadata = await getMetadata();
     const url = buildUrl(service, endpoint);
     const isFormData = payload instanceof FormData;
@@ -67,30 +94,47 @@ export async function apiFetch<T = any>(
       : //  : JSON.stringify({ ...payload, metadata });
         JSON.stringify(payload);
 
-    const res = await fetch(url, {
-      method: "POST",
-      headers,
-      body,
-      cache: "no-store", // Prevents caching on the server
+    const requestPromise = (async () => {
+      const res = await fetch(url, {
+        method: "POST",
+        headers,
+        body,
+        cache: "no-store", // Prevents caching on the server
+      });
+
+      const responseData: ApiResponse<T> = await res.json();
+      const normalizedResponse: ApiResponse<T> = {
+        ...responseData,
+        message: responseData.message ?? responseData.msg,
+      };
+
+      if (!res.ok || !normalizedResponse.success) {
+        const errorMessages = Object.entries(responseData.errors || {})
+          .map(([key, val]) => `${key}: ${(val as string[]).join(", ")}`)
+          .join("\n");
+
+        //   console.error(
+        //     `[API ERROR] ${toProperCase(
+        //       responseData.message || "Failed to process request"
+        //     )} - ${errorMessages}`
+        //   );
+
+        return normalizedResponse;
+      }
+
+      return normalizedResponse;
+    })();
+
+    inFlightRequests.set(requestKey, {
+      startedAt: Date.now(),
+      promise: requestPromise,
     });
 
-    const responseData: ApiResponse<T> = await res.json();
-
-    if (!res.ok || !responseData.success) {
-      const errorMessages = Object.entries(responseData.errors || {})
-        .map(([key, val]) => `${key}: ${(val as string[]).join(", ")}`)
-        .join("\n");
-
-      //   console.error(
-      //     `[API ERROR] ${toProperCase(
-      //       responseData.message || "Failed to process request"
-      //     )} - ${errorMessages}`
-      //   );
-
-      return responseData;
+    try {
+      return await requestPromise;
+    } finally {
+      inFlightRequests.delete(requestKey);
     }
-
-    return responseData;
   } catch (err: any) {
     //console.error("[API ERROR]", err.message);
     return {
